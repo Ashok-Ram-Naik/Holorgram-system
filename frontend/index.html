@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intelligent Hologram System</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&family=Outfit:wght@400;700&display=swap"
+        rel="stylesheet">
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- MediaPipe JS CDNs -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <div id="ui-layer">
+        <header>
+            <div class="title-group">
+                <h1>Holographic Interaction System</h1>
+            </div>
+            <div class="status-container">
+                <div id="status-text" class="status offline">System Offline</div>
+                <div id="voice-status" class="status">Voice: Idle</div>
+            </div>
+        </header>
+
+
+
+        <div class="controls-info">
+            <div class="info-card hand-monitor">
+                <h3>Gesture Monitor</h3>
+                <div class="monitor-stats">
+                    <div class="stat-line"><span>Status</span><span id="monitor-status" class="active">Active</span>
+                    </div>
+                    <div class="stat-line"><span>Gesture</span><span id="monitor-gesture">None</span></div>
+                </div>
+                <div class="canvas-wrapper">
+                    <canvas id="hand-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-row">
+            <div class="current-state">
+                <div class="state-item">
+                    <span class="state-label">Detected Gesture</span>
+                    <span id="gesture-display" class="state-value">None</span>
+                </div>
+                <div class="state-item">
+                    <span class="state-label">Voice Processor</span>
+                    <span id="voice-display" class="state-value">Awaiting Input</span>
+                </div>
+                <div class="state-item">
+                    <span class="state-label">Active Model</span>
+                    <span id="object-display" class="state-value">Cube</span>
+                </div>
+            </div>
+
+            <button id="toggle-hologram" class="glow-btn">Hologram Mode</button>
+        </div>
+    </div>
+
+    <!-- The 3D Canvas Container -->
+    <div id="canvas-container"></div>
+
+    <!-- Hidden Video Element for MediaPipe -->
+    <video id="input_video" style="display: none;"></video>
+
+    <!-- Gesture Detector script -->
+    <script src="gesture_detector.js"></script>
+
+    <script src="main.js"></script>
+    <script src="voice_recognizer.js"></script>
+</body>
+
+</html>

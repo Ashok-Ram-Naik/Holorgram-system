@@ -1,0 +1,5 @@
+mediapipe
+SpeechRecognition
+pyaudio
+websockets
+opencv-python

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dataset Collector</title>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <style>
+        body { font-family: sans-serif; background: #111; color: white; text-align: center; }
+        video { transform: scaleX(-1); border: 2px solid #333; margin-top: 20px;}
+        button { padding: 10px 20px; font-size: 16px; margin: 10px; cursor: pointer; }
+        .recording { background: red; color: white; }
+    </style>
+</head>
+<body>
+    <h1>Gesture Data Collector</h1>
+    <p>Select a gesture and hold it. It will record 500 frames and download a CSV file.</p>
+    
+    <div id="buttons">
+        <button onclick="startRecording(0, 'None')">Record NONE (0)</button>
+        <button onclick="startRecording(1, 'Thumb_Up')">Record THUMB UP (1)</button>
+        <button onclick="startRecording(2, 'Index_Point')">Record INDEX POINT (2)</button>
+        <button onclick="startRecording(3, 'Open_Palm')">Record OPEN PALM (3)</button>
+        <button onclick="startRecording(4, 'Closed_Fist')">Record CLOSED FIST (4)</button>
+    </div>
+    
+    <h2 id="status">Status: Idle</h2>
+    <video id="video" width="640" height="480" autoplay></video>
+
+    <script>
+        const videoElement = document.getElementById('video');
+        const statusElement = document.getElementById('status');
+        
+        let recording = false;
+        let currentClass = 0;
+        let framesRecorded = 0;
+        const TARGET_FRAMES = 500;
+        let recordedData = []; // Will store arrays of [class, x0, y0, z0...]
+
+        // Initialize MediaPipe Hands
+        const hands = new Hands({locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+        }});
+        hands.setOptions({
+            maxNumHands: 1,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.5,
+            minTrackingConfidence: 0.5
+        });
+
+        hands.onResults((results) => {
+            if (recording && results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                let row = [currentClass];
+                for(let lm of results.multiHandLandmarks[0]) {
+                    row.push(lm.x.toFixed(5), lm.y.toFixed(5), lm.z.toFixed(5));
+                }
+                recordedData.push(row);
+                framesRecorded++;
+                statusElement.innerText = `Recording: ${framesRecorded} / ${TARGET_FRAMES}`;
+                
+                if (framesRecorded >= TARGET_FRAMES) {
+                    stopRecording();
+                }
+            }
+        });
+
+        const camera = new Camera(videoElement, {
+            onFrame: async () => {
+                await hands.send({image: videoElement});
+            },
+            width: 640,
+            height: 480
+        });
+        camera.start();
+
+        function startRecording(classId, className) {
+            if(recording) return;
+            currentClass = classId;
+            framesRecorded = 0;
+            statusElement.innerText = `Get ready...`;
+            setTimeout(() => {
+                recording = true;
+                statusElement.innerText = `Recording ${className}...`;
+            }, 2000);
+        }
+
+        function stopRecording() {
+            recording = false;
+            statusElement.innerText = `Finished! Downloading CSV...`;
+            
+            // Build CSV string
+            let csvContent = "data:text/csv;charset=utf-8,label," + 
+                Array.from({length: 63}, (_, i) => `v_${i}`).join(",") + "\n";
+                
+            recordedData.forEach(row => {
+                csvContent += row.join(",") + "\n";
+            });
+            
+            // Download
+            var encodedUri = encodeURI(csvContent);
+            var link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `gesture_${currentClass}_data.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Reset for next
+            recordedData = [];
+            setTimeout(() => { statusElement.innerText = "Status: Idle"; }, 3000);
+        }
+    </script>
+</body>
+</html>
